@@ -104,3 +104,8 @@ skip:
 addi x4, x0, 77 $\to$ Success flag: x4 = 77.
 ```
 <img width="1002" height="397" alt="image" src="https://github.com/user-attachments/assets/774477bf-2e5a-4f02-9d38-3fa3c06c1f99" />
+
+
+
+## Run Your Load/Store Test
+<img width="582" height="452" alt="image" src="https://github.com/user-attachments/assets/c9b3d895-b4da-4ee2-9462-1b52459ebfc4" />
