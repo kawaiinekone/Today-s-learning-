@@ -1,4 +1,4 @@
-# Takshaka-Core: An Application-Specific 3-Stage Low-Power RV32I Embedded Processor
+# Eco_riscV-Core: An Application-Specific 3-Stage Low-Power RV32I Embedded Processor
 
 Takshaka-Core is an open-source, energy-efficient 32-bit RISC-V processor implementing the unprivileged RV32I Base Integer Instruction Set, integrated with a custom hardware-accelerated instruction extension (`cpop`) and architectural operand isolation gating ("Green-Heart" Eco-Gate). 
 
