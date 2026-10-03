@@ -168,3 +168,21 @@ The internal forwarding unit detects this condition:
 assign fwd_rs1_data = (r_wb_reg_write && (r_wb_rd_addr != 5'd0) && (r_wb_rd_addr == id_rs1_addr)) 
                       ? wb_wr_data : rf_rd_data1;
 ```
+If matched, wb_wr_data is routed directly to the ALU operand input without inserting stall bubbles.
+
+**Store Data Hazard Forwarding**
+
+
+A subtle hazard arises when storing a value computed in the cycle immediately prior:
+
+```
+addi x2, x0, 255     ; Value generated
+sw   x2, 0(x1)       ; Store depends on x2
+```
+If the pipeline latches the raw register file output rs2_data, it reads stale data because x2 has not yet committed. Takshaka-Core routes the forwarded bus into the pipeline register:
+
+```
+r_wb_rs2_data <= fwd_rs2_data; // Latches dynamically forwarded value
+```
+
+This guarantees that data memory receives the up-to-date calculation.
