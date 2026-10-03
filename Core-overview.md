@@ -1,10 +1,10 @@
-# ⚡ Eco-Cheat RISC-V Core
+#  Eco-Cheat RISC-V Core
 
 ### An Eco-Friendly, Hardware-Accelerated 3-Stage RISC-V Processor, Built From Scratch
 
 ---
 
-## 1. 🌟 The Big Picture: Why Are We Doing This?
+## 1.  The Big Picture: Why Are We Doing This?
 
 Have you ever wondered what actually happens when you click a button on your phone, run a line of Python code, or play a video game?
 
@@ -37,9 +37,7 @@ A **Processor Core** is the beating mechanical heart of a computer. It runs an e
 
 ---
 
-## 2. 🎯 What Makes Our Core Unique?
-
-If thousands of computer science students build basic processors, why should anyone care about this one?
+## 2.  What Makes Our Core Unique?
 
 Most beginner processors operate like a brute-force light switch: they waste massive amounts of battery power and take 40 to 50 clock cycles to complete basic bit-counting operations.
 
@@ -47,7 +45,7 @@ We are designing an **Application-Specific Embedded Edge Core** tailored for dev
 
 ### Our Two Architectural Innovations
 
-### 🚀 Innovation 1: The "Cheat-Code" Hardware Accelerator
+###  Innovation 1: The "Cheat-Code" Hardware Accelerator
 
 In real-world health sensors and network communication, processors constantly need to count how many binary `1`s are inside a number. This is called **Population Count** (`popcount`).
 
@@ -60,7 +58,7 @@ popcount rd, rs1
 
 It counts all the 1s across 32 bits simultaneously in exactly **one clock cycle**.
 
-### 🍃 Innovation 2: The "Green-Heart" Eco-Gate (Operand Isolation)
+### Innovation 2: The "Green-Heart" Eco-Gate (Operand Isolation)
 
 In modern chips, electricity is wasted every time a wire flips from 0 to 1.
 
@@ -69,7 +67,7 @@ In modern chips, electricity is wasted every time a wire flips from 0 to 1.
 
 ---
 
-## 3. ⏱️ The Laundry Analogy: Why a 3-Stage Pipeline?
+## 3.  The Laundry Analogy: Why a 3-Stage Pipeline?
 
 To understand how our core functions, consider doing laundry.
 
@@ -103,7 +101,7 @@ At steady state, an entire load of laundry finishes every 30 minutes.
 
 ---
 
-## 4. 🧱 The 12 Hardware Bricks
+## 4.  The 12 Hardware Bricks
 
 A processor core is assembled like a Lego set. Here is the blueprint of every module we build.
 
@@ -128,25 +126,25 @@ A processor core is assembled like a Lego set. Here is the blueprint of every mo
 
 ### Stage 1: Instruction Fetch (IF)
 
-#### 🧱 Brick 1: Program Counter Register (`pc_reg.v`)
+#### Brick 1: Program Counter Register (`pc_reg.v`)
 - **What it is:** A 32-bit hardware register made of 32 microscopic memory cells (D flip-flops).
 - **What it does:** Holds the address of the instruction currently being read. It has a built-in adder that calculates `PC + 4` on every clock beat (each instruction takes 4 bytes). If a branch or jump evaluates to true, it overrides the `+4` and jumps to the target address instead.
 
-#### 🧱 Brick 2: Instruction Memory (`imem.v`)
+#### Brick 2: Instruction Memory (`imem.v`)
 - **What it is:** The library where the program's compiled instructions live.
 - **What it does:** Receives the address from the Program Counter, looks inside its storage table, and outputs the raw 32-bit instruction word at that slot.
 - **Special trick:** Memory is organized in words (groups of 4 bytes). We drop the lowest two address bits (`addr[31:2]`) so we index cleanly without skipping lines.
 
 ### Barrier 1: The First Airlock
 
-#### 🧱 Brick 3: IF/ID Pipeline Register (`if_id_reg.v`)
+#### Brick 3: IF/ID Pipeline Register (`if_id_reg.v`)
 - **What it is:** A wall of flip-flops placed between Stage 1 and Stage 2.
 - **What it does:** Captures the fetched instruction on the clock tick and holds it steady so Stage 2 can study it, while Stage 1 moves forward to fetch the next instruction.
 - **Safety valve (flush):** If a branch is taken in Stage 3, this register has a flush wire that wipes its stored instruction to zero (NOP, "do nothing") so the wrong speculative instruction is discarded.
 
 ### Stage 2: Instruction Decode & Operand Fetch (ID)
 
-#### 🧱 Brick 4: Control Unit (`control_unit.v`)
+#### Brick 4: Control Unit (`control_unit.v`)
 - **What it is:** The central traffic controller of the processor.
 - **What it does:** Reads the opcode (the first 7 bits of the instruction) and asserts or clears control signals:
   - `RegWrite`: "Get ready to save an answer into a register."
@@ -155,57 +153,57 @@ A processor core is assembled like a Lego set. Here is the blueprint of every mo
   - `is_cheat`: "This is our custom opcode. Turn on the PopCount accelerator."
   - `is_alu_op`: "This is standard math. Tell the Eco-Gate to wake up the ALU."
 
-#### 🧱 Brick 5: Register File (`regfile.v`)
+#### Brick 5: Register File (`regfile.v`)
 - **What it is:** The fast-access scratchpad of the CPU: 32 registers (`x0` through `x31`), each 32 bits wide.
 - **What it does:**
   - Reads two source values (`rs1` and `rs2`) simultaneously at any moment, without waiting for a clock tick.
   - Writes results back to the destination register (`rd`) strictly on the clock tick.
 - **The golden rule of RISC-V:** Register `x0` is hardwired to ground. It always evaluates to `0x00000000`. Any attempt to overwrite `x0` is discarded by hardware.
 
-#### 🧱 Brick 6: Immediate Generator (`imm_gen.v`)
+#### Brick 6: Immediate Generator (`imm_gen.v`)
 - **What it is:** An un-scrambler and sign-extension circuit.
 - **What it does:** Often an instruction includes a hardcoded number inside itself (like the `5` in `addi x1, x0, 5`). RISC-V stores these numbers across different bit positions depending on the instruction format (I, S, B, U, J). This module extracts the bits, puts them back in numeric order, and extends them to a full 32-bit signed number.
 
 ### Barrier 2: The Second Airlock
 
-#### 🧱 Brick 7: ID/EX Pipeline Register (`id_ex_reg.v`)
+#### Brick 7: ID/EX Pipeline Register (`id_ex_reg.v`)
 - **What it is:** A very wide barrier register (over 150 flip-flops side by side).
 - **What it does:** Takes all the decoded control wires, register data values, register addresses, and immediate numbers from Stage 2 and holds them static for Stage 3. It also has a flush pin to erase incorrect instructions when a branch misprediction occurs.
 
 ### Stage 3: Execute, Memory & Writeback (EX / MEM / WB)
 
-#### 🧱 Brick 8: Eco-Gate Unit (`eco_gate.v`)
+#### Brick 8: Eco-Gate Unit (`eco_gate.v`)
 - **What it is:** An array of 2-to-1 multiplexers (electronic switches) guarding the ALU inputs.
 - **What it does:** Monitors the `is_alu_op` wire. If the instruction is a memory access (`lw`, `sw`) or a branch comparison (`beq`), it forces the ALU inputs to flat 0s. The internal adder transistors stay still, preventing wasted dynamic switching power.
 
-#### 🧱 Brick 9: Master ALU + Cheat-Code Accelerator (`alu_top.v`)
+#### Brick 9: Master ALU + Cheat-Code Accelerator (`alu_top.v`)
 - **What it is:** The mathematical engine of the core.
 - **What it does:**
   - Runs standard arithmetic: `add`, `sub`, bitwise `and`, `or`, `xor`, shifts (`sll`, `srl`, `sra`), and comparisons (`slt`, `sltu`).
   - Houses our custom **PopCount engine**: an optimized hardware adder tree that counts all set bits in a register within one clock cycle.
   - Outputs a `zero` flag that tells the branch unit whether two compared numbers were equal.
 
-#### 🧱 Brick 10: Branch Resolution Unit (`branch_unit.v`)
+#### Brick 10: Branch Resolution Unit (`branch_unit.v`)
 - **What it is:** The decision-making unit for loops and `if/else` checks.
 - **What it does:** Checks whether a condition was met (e.g., branch if equal). If true:
   - Asserts `branch_taken = 1`.
   - Calculates the destination address: `Target = PC + Immediate`.
   - Overrides the Program Counter in Stage 1 and flushes the pipeline barriers.
 
-#### 🧱 Brick 11: Data Memory (`dmem.v`)
+#### Brick 11: Data Memory (`dmem.v`)
 - **What it is:** The RAM workspace of the processor, where program variables, arrays, and buffers live.
 - **What it does:**
   - On a store (`sw`), saves a 32-bit register value into a memory slot.
   - On a load (`lw`), retrieves a 32-bit value from a memory slot so it can be committed back into a register.
 
-#### 🧱 Brick 12: Forwarding Unit (`forwarding_unit.v`)
+#### Brick 12: Forwarding Unit (`forwarding_unit.v`)
 - **What it is:** An intelligent bypass circuit that eliminates execution stalls.
 - **What it does:** Suppose instruction 1 calculates `x1 = 5 + 2`, and instruction 2 immediately needs `x3 = x1 + 10`. Without forwarding, instruction 2 would have to wait for instruction 1 to write its result back into the register file. The forwarding unit detects this hazard, grabs the calculated answer directly off the ALU output wire, and feeds it into the ALU input for the next cycle.
 - **Critical safety guard:** It strictly verifies `ex_rd != 0`, ensuring it never forwards non-zero values intended for register `x0`.
 
 ---
 
-## 5. 🔌 Wiring the Blocks: How They Talk to Each Other
+## 5.  Wiring the Blocks: How They Talk to Each Other
 
 All 12 bricks are placed inside a top-level container file called `core_top.v`. Here is how data and control signals flow between them:
 
@@ -247,11 +245,11 @@ All 12 bricks are placed inside a top-level container file called `core_top.v`. 
 
 ---
 
-## 6. 💥 What Happens If You Wire It Wrong? (Real Silicon Disasters)
+## 6.  What Happens If You Wire It Wrong? (Real Silicon Disasters)
 
 In software, a bug throws an error message (like `NullPointerException`). In hardware design, there are no error messages. Miswiring a connection causes the chip to silently calculate garbage, freeze into deadlock, or overheat.
 
-### ⚠️ Disaster 1: Forgetting the x0 Forwarding Guard
+###  Disaster 1: Forgetting the x0 Forwarding Guard
 
 **The mistake:** You write your forwarding check as:
 
@@ -263,7 +261,7 @@ if (ex_reg_write && (ex_rd == id_rs1)) forward_a = 1;
 
 **The fix:** Add `&& (ex_rd != 0)` to the condition.
 
-### ⚠️ Disaster 2: The Inferred Latch (The Missing `else`)
+###  Disaster 2: The Inferred Latch (The Missing `else`)
 
 **The mistake:** In your combinational ALU block, you write an `if` condition for addition but forget the `else` branch or a `default` case.
 
@@ -271,7 +269,7 @@ if (ex_reg_write && (ex_rd == id_rs1)) forward_a = 1;
 
 **The fix:** Always assign a default value, or cover every case.
 
-### ⚠️ Disaster 3: Shifting by 32 Bits Instead of `b[4:0]`
+###  Disaster 3: Shifting by 32 Bits Instead of `b[4:0]`
 
 **The mistake:** Wiring all 32 bits of operand B directly into your barrel shifter instead of only the lowest 5 bits (`b[4:0]`).
 
@@ -281,7 +279,7 @@ if (ex_reg_write && (ex_rd == id_rs1)) forward_a = 1;
 
 ---
 
-## 7. 🧪 Testing on an FPGA: How Do We Prove It Works?
+## 7.  Testing on an FPGA: How Do We Prove It Works?
 
 You do not need to spend millions of dollars building a custom chip at a factory. We can prove our processor runs by loading it onto an **FPGA** (Field-Programmable Gate Array).
 
