@@ -73,3 +73,34 @@ gtkwave stage2.vcd
 Stage 3 coordinates scratchpad memory accesses and commits computed or loaded results back to the register file, backed by dynamic hazard forwarding and branch flushing logic.
 
 
+
+**The Program: Sum of Natural Numbers ($1 + 2 + 3 + 4 + 5 = 15$)**
+**The Assembly Routine:**
+```
+; Initialize
+addi x1, x0, 5       ; Counter N = 5
+addi x2, x0, 0       ; Accumulator Sum = 0
+
+loop:
+add  x2, x2, x1      ; Sum = Sum + N
+addi x1, x1, -1      ; N = N - 1
+bne  x1, x0, loop    ; If N != 0, jump back to loop
+
+; Finish
+addi x3, x0, 1       ; Done flag = 1
+```
+## Verification
+<img width="1062" height="782" alt="image" src="https://github.com/user-attachments/assets/44e28391-b612-4126-9c5d-1bd919dd77b0" />
+
+**The Program: Control Flow (Branch & Pipeline Flush)**
+## To test conditional branching (beq) to verify pipeline flush behavior when a branch condition is met.
+**The Program:**
+```
+addi x1, x0, 10 $\to$ x1 = 10
+addi x2, x0, 10 $\to$ x2 = 10
+beq  x1, x2, skip $\to$ Since $10 == 10$, the branch is taken and jumps ahead by $+8$ bytes.
+addi x3, x0, 99 $\to$ Trap instruction: If the pipeline flush fails, x3 will be written with 99. If flushing works, this instruction gets discarded.
+skip:
+addi x4, x0, 77 $\to$ Success flag: x4 = 77.
+```
+<img width="1002" height="397" alt="image" src="https://github.com/user-attachments/assets/774477bf-2e5a-4f02-9d38-3fa3c06c1f99" />
