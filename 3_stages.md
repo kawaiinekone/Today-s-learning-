@@ -106,6 +106,29 @@ addi x4, x0, 77 $\to$ Success flag: x4 = 77.
 <img width="1002" height="397" alt="image" src="https://github.com/user-attachments/assets/774477bf-2e5a-4f02-9d38-3fa3c06c1f99" />
 
 
+## To verify: Immediate & Register Arithmetic (addi, add, sub)
 
-## Run Your Load/Store Test
-<img width="582" height="452" alt="image" src="https://github.com/user-attachments/assets/c9b3d895-b4da-4ee2-9462-1b52459ebfc4" />
+Logic Operations (and, or, xor)
+
+1-Cycle Popcount Accelerator (cpop)
+
+Hardwired x0 Zero-Check (ensuring writing to x0 never changes its value):
+```
+addi x1, x0, 12 $\to$ x1 = 12 (0x0000000C, binary ...1100)
+addi x2, x0, 5  $\to$ x2 = 5  (0x00000005, binary ...0101)
+and  x3, x1, x2 $\to$ x3 = 12 & 5 = 4 (0x00000004)
+or   x4, x1, x2 $\to$ x4 = 12 | 5 = 13 (0x0000000D)
+xor  x5, x1, x2 $\to$ x5 = 12 ^ 5 = 9 (0x00000009)
+sub  x6, x1, x2 $\to$ x6 = 12 - 5 = 7 (0x00000007)
+cpop x7, x3     $\to$ x7 = popcount(4) = 1 (4 is 0b0100, exactly one set bit)
+addi x0, x0, 50 $\to$ Attempt to corrupt x0 with 50 (must remain 0)
+```
+**VERIFICATION**
+<img width="582" height="452" alt="Screenshot 2026-10-03 223045" src="https://github.com/user-attachments/assets/5f682250-80d6-4c84-88e3-997939e40be9" />
+
+
+## Running Load/Store Test
+
+<img width="992" height="512" alt="image" src="https://github.com/user-attachments/assets/3cbdf620-760a-481e-a6c7-59c4d86b5e0d" />
+
+
