@@ -129,6 +129,26 @@ A processor core is assembled like a Lego set. Here is the blueprint of every mo
 #### Brick 1: Program Counter Register (`pc_reg.v`)
 - **What it is:** A 32-bit hardware register made of 32 microscopic memory cells (D flip-flops).
 - **What it does:** Holds the address of the instruction currently being read. It has a built-in adder that calculates `PC + 4` on every clock beat (each instruction takes 4 bytes). If a branch or jump evaluates to true, it overrides the `+4` and jumps to the target address instead.
+-------------------------------------------------------------------------------------------
+  - **In Hardware Terms (How Your Core Actually Does It)**
+Look at what feeds into your pc_reg: it has a 2-to-1 multiplexer right in front of its input (next_pc):
+```
+                  +-------------+
+   PC + 4 ------->| 0           |
+                  |     MUX     |-------> [ PC Register ]
+Target Address -->| 1           |
+(e.g., 0x0010)    +-------------+
+                         ^
+                         |
+                   branch_taken
+```
+
+- **When branch_taken == 0 (Normal operation):**
+The MUX selects input 0 (PC + 4). The PC points to the very next sequential instruction.
+
+- **When branch_taken == 1 (Branch is TRUE or a Jump happens):**
+The MUX flips to input 1 (branch_target). It overrides the +4 adder and loads the branch destination into the PC, so the CPU begins executing from that new location on the very next clock cycle.
+
 
 #### Brick 2: Instruction Memory (`imem.v`)
 - **What it is:** The library where the program's compiled instructions live.
