@@ -183,7 +183,39 @@ The MUX flips to input 1 (branch_target). It overrides the +4 adder and loads th
 #### Brick 6: Immediate Generator (`imm_gen.v`)
 - **What it is:** An un-scrambler and sign-extension circuit.
 - **What it does:** Often an instruction includes a hardcoded number inside itself (like the `5` in `addi x1, x0, 5`). RISC-V stores these numbers across different bit positions depending on the instruction format (I, S, B, U, J). This module extracts the bits, puts them back in numeric order, and extends them to a full 32-bit signed number.
-
+  ```
+  32-bit Raw Instruction [31:0]
+                     |
+       +-------------+-------------+
+       |                           |
+  Opcode [6:0]               Sliced Bit Fields
+       |                           |
+       v                           |
+```
++--------------+                   |
+| Format Match |                   |
+| (I, S, B, J) |                   |
++--------------+                   |
+       |                           |
+       v                           v
+  [Control] ----------> +-------------------------------------+
+                        |          Un-scrambler MUX           |
+                        +-------------------------------------+
+                                   |
+                  +----------------+----------------+
+                  |                                 |
+           Sign Bit (instr[31])           Un-scrambled Bits
+                  |                                 |
+                  v                                 |
+         [Replicate 20 times]                       |
+         {20{instr[31]}}                            |
+                  |                                 |
+                  +----------------+----------------+
+                                   |
+                                   v
+                      Final 32-bit Signed Immediate
+     
+```
 ### Barrier 2: The Second Airlock
 
 #### Brick 7: ID/EX Pipeline Register (`id_ex_reg.v`)
@@ -195,7 +227,64 @@ The MUX flips to input 1 (branch_target). It overrides the +4 adder and loads th
 #### Brick 8: Eco-Gate Unit (`eco_gate.v`)
 - **What it is:** An array of 2-to-1 multiplexers (electronic switches) guarding the ALU inputs.
 - **What it does:** Monitors the `is_alu_op` wire. If the instruction is a memory access (`lw`, `sw`) or a branch comparison (`beq`), it forces the ALU inputs to flat 0s. The internal adder transistors stay still, preventing wasted dynamic switching power.
+- **The Problem It Solves:**
+   Parasitic Switching In a standard digital processor without operand isolation, when the core runs instructions like a store (sw), a load (lw), a branch (beq), or executes a NOP bubble, the register read data buses still fluctuate with active binary values.
+   Because the ALU inputs connect directly to those fluctuating buses, thousands of microscopic transistors inside the ALU's internal carry-lookahead adders, shifter arrays, and logic gates charge and discharge capacitors unnecessarily. That wasted transistor toggling burns dynamic switching power for results that are discarded:
+  
+   **$P_{\text{dynamic}} = \alpha \cdot C_L \cdot V_{DD}^2 \cdot f_{clk}$**
 
+  
+- **Register File / Forwarding Buses**
+
+  
+                 (Toggling with active data)
+                             |
+             +---------------+---------------+
+             |                               |
+       fwd_rs1_data [31:0]             fwd_rs2_data / imm [31:0]
+             |                               |
+             v                               v
+       +-----------+                   +-----------+
+```
+0x0 -->| 0         |             0x0 ->| 0         |
+       |    MUX    |                   |    MUX    |
+Bus -->| 1         |             Bus ->| 1         |
+       +-----------+                   +-----------+
+             ^                               ^
+             |                               |
+             +---------------+---------------+
+                             |
+                         is_alu_op  (From Control Unit)
+                             |
+                             v
+           +-----------------------------------+
+           |    OPERAND ISOLATION DECISION     |
+           |                                   |
+           | is_alu_op == 1 (ADD, SUB, CPOP)   |
+           |   ==> Pass real values through    |
+           |                                   |
+           | is_alu_op == 0 (sw, beq, NOP)     |
+           |   ==> Clamp inputs to 32'h00000000|
+           +-----------------------------------+
+                             |
+              +--------------+--------------+
+              |                             |
+      gated_alu_a [31:0]            gated_alu_b [31:0]
+              |                             |
+              v                             v
+       +-------------------------------------------+
+       |                                           |
+       |                32-BIT ALU                 |
+       |     (Internal Adders & Logic Trees)       |
+       |                                           |
+       |   When clamped to 0x0:                    |
+       |   * No internal bit-flips                 |
+       |   * Transistors stay quiescent            |
+       |   * Parasitic switching power = 0         |
+       +-------------------------------------------+
+  ```
+- In riscv_core.v, this isolation is implemented using simple combinational continuous assignments (synthesizing directly to an array of thirty-two 2-to-1 multiplexers per port
+- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #### Brick 9: Master ALU + Cheat-Code Accelerator (`alu_top.v`)
 - **What it is:** The mathematical engine of the core.
 - **What it does:**
