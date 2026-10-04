@@ -439,4 +439,4 @@ DYNAMIC ENERGY SAVED: 38% ALU Gated
 
 #### 3. The Physical LED "Heartbeat"
 
-Map an output wire from the core to a physical LED on the FPGA board, and write a countdown loop that toggles the LED on and off. When you see that light blink on the circuit board, you are watching your custom processor execute machine instructions in th
+Map an output wire from the core to a physical LED on the FPGA board, and write a countdown loop that toggles the LED on and off. When you see that light blink on the circuit board, you are watching your custom processor execute machine instructions 
