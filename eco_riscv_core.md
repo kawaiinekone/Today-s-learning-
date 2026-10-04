@@ -1,31 +1,12 @@
 # Eco_riscV-Core: An Application-Specific 3-Stage Low-Power RV32I Embedded Processor
 
-Takshaka-Core is an open-source, energy-efficient 32-bit RISC-V processor implementing the unprivileged RV32I Base Integer Instruction Set, integrated with a custom hardware-accelerated instruction extension (`cpop`) and architectural operand isolation gating ("Green-Heart" Eco-Gate). 
+Eco-Core is an open-source, energy-efficient 32-bit RISC-V processor implementing the unprivileged RV32I Base Integer Instruction Set, integrated with a custom hardware-accelerated instruction extension (`cpop`) and architectural operand isolation gating ("Green-Heart" Eco-Gate). 
 
 It is engineered specifically for deeply embedded, energy-harvesting edge systems—such as wearable continuous health monitors, biosignal anomaly trackers, and precision agricultural soil sensor nodes—where processing autonomy and battery longevity over years are critical constraints.
 
 ---
 
-## Table of Contents
-1. [Architectural Philosophy & Motivation](#architectural-philosophy--motivation)
-2. [Microarchitecture & Pipeline Specification](#microarchitecture--pipeline-specification)
-   - [Stage 1: Instruction Fetch (IF)](#stage-1-instruction-fetch-if)
-   - [Stage 2: Instruction Decode & Execution (ID/EX)](#stage-2-instruction-decode--execution-idex)
-   - [Stage 3: Memory Access & Writeback (MEM/WB)](#stage-3-memory-access--writeback-memwb)
-3. [The 12-Brick Modular RTL Topology](#the-12-brick-modular-rtl-topology)
-4. [Custom Hardware Innovations](#custom-hardware-innovations)
-   - [1. Single-Cycle Population Count Accelerator (cpop)](#1-single-cycle-population-count-accelerator-cpop)
-   - [2. "Green-Heart" Eco-Gate Operand Isolation](#2-green-heart-eco-gate-operand-isolation)
-5. [Hazard Handling & Data Path Forwarding](#hazard-handling--data-path-forwarding)
-   - [RAW Arithmetic Bypass](#raw-arithmetic-bypass)
-   - [Store Data Hazard Forwarding](#store-data-hazard-forwarding)
-   - [Control Hazard Resolution & Speculative Bubble Flushing](#control-hazard-resolution--speculative-bubble-flushing)
-6. [Comprehensive Verification & Trace Logs](#comprehensive-verification--trace-logs)
-   - [Suite 1: Core ALU, Logic & Popcount Sanity](#suite-1-core-alu-logic--popcount-sanity)
-   - [Suite 2: Data Memory Round-Trip & RAW Forwarding](#suite-2-data-memory-round-trip--raw-forwarding)
-   - [Suite 3: Branch Decision & Pipeline Flush](#suite-3-branch-decision--pipeline-flush)
-7. [Repository Layout](#repository-layout)
-8. [Build, Simulation & Waveform Inspection Guide](#build-simulation--waveform-inspection-guide)
+
 
 ---
 
@@ -35,7 +16,7 @@ Classical 5-stage RISC pipelines (IF $\to$ ID $\to$ EX $\to$ MEM $\to$ WB) maxim
 - **Control Hazard Penalties**: Branch mispredictions incur a 2-to-3 cycle flush penalty, penalizing short, branch-heavy sensor evaluation loops.
 - **Dynamic Gating Overhead**: Additional inter-stage pipeline registers increase flip-flop count, leakage, and dynamic clock-tree switching power.
 
-Takshaka-Core adopts a **balanced 3-stage pipeline (IF $\to$ ID/EX $\to$ MEM/WB)**. This design provides:
+Eco-Core adopts a **balanced 3-stage pipeline (IF $\to$ ID/EX $\to$ MEM/WB)**. This design provides:
 1. **Single-Cycle Branch Resolution**: Branches are decided directly in Stage 2, bounding the taken-branch penalty to exactly **1 clock cycle bubble**.
 2. **Deterministic Single-Cycle ALU Throughput**: Back-to-back dependent arithmetic instructions execute with zero stall bubbles via register forwarding.
 3. **Targeted Acceleration**: Hardware offloading of Hamming distance and bit-density calculations via a 1-cycle `popcount` instruction, bypassing multi-cycle software iteration.
